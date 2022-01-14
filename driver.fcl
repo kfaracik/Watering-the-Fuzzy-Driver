@@ -1,0 +1,78 @@
+FUNCTION_BLOCK watering
+
+	VAR_INPUT
+		poziom_wilgotnosci : REAL;
+		poziom_wody_w_zbiorniku: REAL;
+		pora_dnia : REAL;
+	END_VAR
+
+	VAR_OUTPUT
+		intensywnosc_podlewania : REAL;
+	END_VAR
+
+	FUZZIFY poziom_wilgotnosci
+		TERM bardzo_sucho := (0, 1) (10, 1) (20, 0.50) (30, 0);
+		TERM sucho := (10, 0) (20, 0.50) (30, 1) (40, 1) (50, 0.50) (60, 0);
+		TERM mokro := (40, 0) (50, 0.50) (60, 1) (70, 1) (80, 0.50) (90, 0);
+		TERM bardzo_mopkro := (70, 0) (80, 0.50) (90, 1) (100, 1);
+	END_FUZZIFY
+
+	FUZZIFY pora_dnia
+		TERM ranek := (1, 0) (3, 0.50) (5, 1) (7, 1) (9, 0.50) (11, 0);
+		TERM poludnie := (7, 0) (9, 0.50) (11, 1) (13, 1) (15, 0.50) (17, 0);
+		TERM wieczor := (13, 0) (15, 0.50) (17, 1) (19, 1) (21, 0.50) (23, 0);
+		TERM noc := (0,1) (1, 1) (3, 0.50) (5, 0) (19, 0) (21, 0.50) (23, 1);
+	END_FUZZIFY
+
+	FUZZIFY poziom_wody_w_zbiorniku
+	    TERM maly := (0, 1) (20, 1) (30, 0.5) (40, 0) (70, 0);
+    	TERM sredni := (20, 0) (30, 0.5) (40, 1) (60, 1) (70, 0.5) (80, 0);
+    	TERM duzy := (30, 0) (60, 0) (70, 0.5) (80, 1) (100, 1);
+	END_FUZZIFY
+
+	DEFUZZIFY intensywnosc_podlewania
+		TERM zmniejsz := (0, 1) (2, 1) (3, 0.50) (4, 0) (7, 0);
+        TERM zostaw := (2, 0) (3, 0.50) (4, 1) (6, 1) (7, 0.50) (8, 0);
+        TERM zwieksz := (3, 0) (6, 0) (7, 0.50) (8, 1) (10, 1);
+		METHOD : COG;
+		DEFAULT := 0;
+	END_DEFUZZIFY
+
+	RULEBLOCK first
+		AND: MIN;
+		ACT: MIN;
+
+		RULE 0: IF poziom_wilgotnosci IS bardzo_sucho AND pora_dnia IS ranek AND poziom_wody_w_zbiorniku IS maly THEN intensywnosc_podlewania IS zostaw;
+		RULE 1: IF poziom_wilgotnosci IS bardzo_sucho AND pora_dnia IS ranek AND poziom_wody_w_zbiorniku IS sredni THEN intensywnosc_podlewania IS zwieksz;
+		RULE 2: IF poziom_wilgotnosci IS bardzo_sucho AND pora_dnia IS ranek AND poziom_wody_w_zbiorniku IS duzy THEN intensywnosc_podlewania IS zwieksz;
+		RULE 3: IF poziom_wilgotnosci IS sucho AND pora_dnia IS ranek AND poziom_wody_w_zbiorniku IS maly THEN intensywnosc_podlewania IS zostaw;
+        RULE 4: IF poziom_wilgotnosci IS sucho AND pora_dnia IS ranek AND poziom_wody_w_zbiorniku IS sredni THEN intensywnosc_podlewania IS zwieksz;
+		RULE 5: IF poziom_wilgotnosci IS sucho AND pora_dnia IS ranek AND poziom_wody_w_zbiorniku IS duzy THEN intensywnosc_podlewania IS zwieksz;
+		RULE 6: IF poziom_wilgotnosci IS mokro AND pora_dnia IS ranek AND poziom_wody_w_zbiorniku IS maly THEN intensywnosc_podlewania IS zmniejsz;
+		RULE 7: IF poziom_wilgotnosci IS mokro AND pora_dnia IS ranek AND poziom_wody_w_zbiorniku IS sredni THEN intensywnosc_podlewania IS zmniejsz;
+		RULE 8: IF poziom_wilgotnosci IS mokro AND pora_dnia IS ranek AND poziom_wody_w_zbiorniku IS duzy THEN intensywnosc_podlewania IS zostaw;
+		RULE 9: IF poziom_wilgotnosci IS bardzo_mopkro AND pora_dnia IS ranek AND poziom_wody_w_zbiorniku IS maly THEN intensywnosc_podlewania IS zmniejsz;
+		RULE 10: IF poziom_wilgotnosci IS bardzo_mopkro AND pora_dnia IS ranek AND poziom_wody_w_zbiorniku IS sredni THEN intensywnosc_podlewania IS zmniejsz;
+		RULE 11: IF poziom_wilgotnosci IS bardzo_mopkro AND pora_dnia IS ranek AND poziom_wody_w_zbiorniku IS duzy THEN intensywnosc_podlewania IS zmniejsz;
+
+		RULE 12: IF poziom_wilgotnosci IS bardzo_sucho AND pora_dnia IS poludnie AND poziom_wody_w_zbiorniku IS maly THEN intensywnosc_podlewania IS zmniejsz;
+		RULE 13: IF poziom_wilgotnosci IS bardzo_sucho AND pora_dnia IS poludnie AND poziom_wody_w_zbiorniku IS sredni THEN intensywnosc_podlewania IS zmniejsz;
+		RULE 14: IF poziom_wilgotnosci IS bardzo_sucho AND pora_dnia IS poludnie AND poziom_wody_w_zbiorniku IS duzy THEN intensywnosc_podlewania IS zostaw;
+		RULE 15: IF poziom_wilgotnosci IS sucho AND pora_dnia IS poludnie THEN intensywnosc_podlewania IS zmniejsz;
+		RULE 16: IF poziom_wilgotnosci IS mokro AND pora_dnia IS poludnie THEN intensywnosc_podlewania IS zmniejsz;
+		RULE 17: IF poziom_wilgotnosci IS bardzo_mopkro AND pora_dnia IS poludnie THEN intensywnosc_podlewania IS zmniejsz;
+
+		RULE 18: IF poziom_wilgotnosci IS bardzo_sucho AND pora_dnia IS wieczor AND poziom_wody_w_zbiorniku IS maly THEN intensywnosc_podlewania IS zwieksz;
+		RULE 19: IF poziom_wilgotnosci IS sucho AND pora_dnia IS wieczor THEN intensywnosc_podlewania IS zwieksz;
+		RULE 10: IF poziom_wilgotnosci IS mokro AND pora_dnia IS wieczor AND poziom_wody_w_zbiorniku IS maly THEN intensywnosc_podlewania IS zmniejsz;
+		RULE 20: IF poziom_wilgotnosci IS mokro AND pora_dnia IS wieczor AND poziom_wody_w_zbiorniku IS sredni THEN intensywnosc_podlewania IS zostaw;
+		RULE 21: IF poziom_wilgotnosci IS mokro AND pora_dnia IS wieczor AND poziom_wody_w_zbiorniku IS duzy THEN intensywnosc_podlewania IS zostaw;
+		RULE 22: IF poziom_wilgotnosci IS bardzo_mopkro AND pora_dnia IS wieczor THEN intensywnosc_podlewania IS zmniejsz;
+
+		RULE 23: IF poziom_wilgotnosci IS bardzo_sucho AND pora_dnia IS noc THEN intensywnosc_podlewania IS zwieksz;
+		RULE 24: IF poziom_wilgotnosci IS sucho AND pora_dnia IS noc THEN intensywnosc_podlewania IS zwieksz;
+		RULE 25: IF poziom_wilgotnosci IS mokro AND pora_dnia IS noc THEN intensywnosc_podlewania IS zostaw;
+		RULE 26: IF poziom_wilgotnosci IS bardzo_mopkro AND pora_dnia IS noc THEN intensywnosc_podlewania IS zmniejsz;
+	END_RULEBLOCK
+
+END_FUNCTION_BLOCK
